@@ -1,16 +1,18 @@
 package co.ykk.dataframe.entities;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 public class DataFrame {
 	
 		
 	private Map<String,List<Item>> rows;
-	private Map<String,List<Item>> cols;
+	private Set<String> cols;
 	
 	/**
 	 * DataFrame private constructor.
@@ -18,27 +20,27 @@ public class DataFrame {
 	 * @param cols
 	 * @param rows
 	 */
-	private DataFrame(Map<String, List<Item>> cols, Map<String, List<Item>> rows) {
+	private DataFrame(Set<String> cols, Map<String, List<Item>> rows) {
 		this.cols = cols;
 		this.rows = rows;
 	}
 
 	public static DataFrame parseFromList(List<String> str) {
-		Map<String,List<Item>> cols = new HashMap<String,List<Item>>();
+		Set<String> cols = new HashSet<String>();
 		Map<String,List<Item>> rows = new HashMap<String,List<Item>>();
 
-		String[] columnNames = str.get(0).split(",");
+		String[] columnNames = str.get(0).replace("\"", "").split(",");
 		for (int i = 1; i < columnNames.length; i++) {
-			cols.put(columnNames[i], new LinkedList<Item>());
+			cols.add(columnNames[i]);
 		}
 		for (int i = 1; i < str.size(); i++) {
 			List<Item> row = new LinkedList<Item>();
-			String[] line = str.get(i).split(",");
+			String[] line = str.get(i).replace("\"", "").split(",");
 			for (int j = 1; j < line.length; j++) {
 				 
 				Item item = new Item(line[0], columnNames[j], line[j].trim().isEmpty()?0.0:Double.parseDouble(line[j]));
 				row.add(item);
-				cols.get(columnNames[j]).add(item);
+				//cols.get(columnNames[j]).add(item);
 			}
 			rows.put(line[0], row);
 		}		
@@ -49,20 +51,18 @@ public class DataFrame {
 		return rows;
 	}
 
-	public Map<String, List<Item>> getCols() {
+	public Set<String> getCols() {
 		return cols;
 	}
 
 	public static DataFrame sumAll(List<DataFrame> frames) {
+		Set<String> cols = new HashSet<String>();
 		Map<String,List<Item>> rows = new HashMap<String,List<Item>>();
-		Map<String,List<Item>> cols = new HashMap<String,List<Item>>();
-		
+ 		
 		for (DataFrame dataFrame : frames) {
-			addEntriesToMap(dataFrame.getCols(), cols);
+			cols.addAll(dataFrame.getCols());
 			addEntriesToMap(dataFrame.getRows(), rows);
 		}
-		System.out.println(cols);
-		System.out.println(rows);
 		return new DataFrame(cols, rows);
 	}
 
@@ -93,13 +93,13 @@ public class DataFrame {
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
 		
-		for (String column : cols.keySet()) {
+		for (String column : cols) {
 			buffer.append(",\"" + column + "\"");
 		}
 		buffer.append("\n");
 		for (Entry<String, List<Item>> entry : rows.entrySet()) {
 			buffer.append("\"" + entry.getKey() + "\"");			
-			for (String column : cols.keySet()) {
+			for (String column : cols) {
 				List<Item> rows = entry.getValue();
 				buffer.append("," + getValueOrZero(rows, entry.getKey(), column));
 			}

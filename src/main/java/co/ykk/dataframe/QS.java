@@ -16,7 +16,8 @@ public class QS {
 			List<DataFrame> frames = new LinkedList<DataFrame>();
 			while (in.hasNextLine()) {
 				String s = in.nextLine();
-				if (s.startsWith(",")) {
+				//System.out.println(s.trim().indexOf(','));
+				if (s.trim().indexOf(',')==0 || s.trim().indexOf(',')==1) {
 					if (!str.isEmpty()) {
 						frames.add(DataFrame.parseFromList(str));
 						str = new LinkedList<String>();
@@ -24,6 +25,8 @@ public class QS {
 				}
 				if (s.trim().isEmpty())
 					continue;
+				if (s.endsWith("EOF"))
+					break;
 				str.add(s);
 			}
 			frames.add(DataFrame.parseFromList(str));
